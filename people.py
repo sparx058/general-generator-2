@@ -1,15 +1,53 @@
 import backend as ez
 import numpy.random as random
 import pandas as pd
+from termcolor import colored
 
 
-# list to string for print
+# converts list to string for print
 def l2s4print(l):
     alpha = str(l).replace('[', '')
     bravo = alpha.replace(']', '')
     charlie = bravo.replace("'", "")
 
     return charlie
+
+
+def display_colored_stats_with_pbar(heading, spacing, cubes, dashes, color, debug=True, stat=0):
+    attribute = heading + str(spacing * ' ') + '|' + str(cubes * '█') + str(dashes * '-') + '|'
+    if debug:
+        attribute = attribute + ' ' + str(stat)
+    c_attribute = colored(attribute, color)
+    print(c_attribute)
+    return
+
+
+def gen_one_from_another(attribute):
+    # std = std.
+    std = abs(attribute - 50)
+    # std unchanged if its small
+    if std < random.randint(5, 16):
+        pass
+    # if std is high then halfs it (helps stop generating ridiculous values)
+    else:
+        std = int(std / 2)
+
+    # used as random.randint(lowpoint,highpoint) for generating exepected result
+    lowpoint = std
+    highpoint = 100 - attribute
+
+    if (100 - attribute) < std:
+        lowpoint = 100 - attribute
+        highpoint = std
+
+    # desired value
+    expected_random = random.randint(lowpoint, highpoint + 1)
+
+    # If value exceeds 100 or is lower than 0; re-generate
+    while expected_random < 0 or expected_random > 100:
+        expected_random = random.randint(lowpoint, highpoint + 1)
+
+    return expected_random
 
 
 class Person:
@@ -50,7 +88,7 @@ class Person:
         dash = '-'
         cube = '█'
 
-        # Make sure 100 is divisible by 'partitions' value. Even though it runs fine ofr most part but by not doing
+        # Make sure 100 is divisible by 'partitions' value. Even though it runs fine for most part but by not doing
         # that it causes progress bar to display within an error range of 1
         part = 100 / partitions
 
@@ -68,15 +106,26 @@ class Person:
 
         b = int(self.b_meter / part)
         b_dash = partitions - b - 1
-        print(f'Sadism     |{s * cube}{s_dash * dash}| Kindness   |{k * cube}{k_dash * dash}|')
-        print(f'Masochism  |{m * cube}{m_dash * dash}| Bitchiness |{b * cube}{b_dash * dash}|')
-        print(f'Confidence |{cm * cube}{c_dash * dash}|')
+
+        display_colored_stats_with_pbar("Sadism", spacing=6, cubes=s, dashes=s_dash, color='magenta', stat=self.s_meter)
+        display_colored_stats_with_pbar("Masochism", spacing=3, cubes=m, dashes=m_dash, color='blue', stat=self.m_meter)
+        display_colored_stats_with_pbar("Kind", spacing=8, cubes=k, dashes=k_dash, color='green', stat=self.k_meter)
+        display_colored_stats_with_pbar("Bitchy", spacing=6, cubes=b, dashes=b_dash, color='red', stat=self.b_meter)
+        display_colored_stats_with_pbar("Confidence", spacing=2, cubes=cm, dashes=c_dash, color='yellow',
+                                        stat=self.c_meter)
+
+
+        # Monochrome Display -------------------------------------------------------------------
+        # print(f'Sadism     |{s * cube}{s_dash * dash}| Kindness   |{k * cube}{k_dash * dash}|')
+        # print(f'Masochism  |{m * cube}{m_dash * dash}| Bitchiness |{b * cube}{b_dash * dash}|')
+        # print(f'Confidence |{cm * cube}{c_dash * dash}|')
         print('=' * 150)
 
 
 def get_s0m1_meter():
     s = random.choice(100, 1)
-    m = 100 - s
+    # m = 100 - s
+    m = gen_one_from_another(s)
     # print(f's: {s} m: {m}')
     return [s, m]
 
@@ -87,7 +136,8 @@ def get_c_meter():
 
 def get_k0b1_meter():
     k = random.choice(100, 1)
-    b = 100 - k
+    # b = 100 - k
+    b = gen_one_from_another(k)
     return [k, b]
 
 
